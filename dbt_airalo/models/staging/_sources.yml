@@ -1,0 +1,15 @@
+sources:
+  - name: dwh_bl
+    database: dbt-airalo
+    schema: dwh_bl
+    description: "Data warehouse business layer tables"
+    
+    tables:
+      - name: dim_exchange_rates
+        description: "Exchange rates dimension table"
+        
+      - name: fct_orders
+        description: "Orders fact table"
+        
+      - name: dim_users
+        description: "Users dimension table"
