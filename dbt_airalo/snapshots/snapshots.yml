@@ -1,0 +1,28 @@
+version: 2
+
+
+snapshots:
+  - name: snp_user
+    # in this case the idea is to build a SCD2 to spot user dimension changes over time (eg. country, platform) 
+    relation: ref('stg_user')
+    config:
+      target_schema: snapshots
+      unique_key: user_id
+      # check stategy because there is no updated_at column on the source
+      strategy: check 
+      check_cols:
+        - ip_country
+        - platform
+
+  - name: snp_exchange_rate
+    # in this case the idea is to build a periodic snapshot to spot exchange rate changes over time and calculate order revenue according to the rate at that time
+    relation: ref('stg_exchange_rate')
+    config:
+      target_schema: snapshots
+      unique_key: currency
+      # check stategy because there is no updated_at column on the source
+      strategy: check 
+      check_cols:
+        - usd_rate
+        - currency 
+    

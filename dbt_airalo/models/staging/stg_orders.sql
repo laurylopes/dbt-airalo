@@ -1,1 +1,0 @@
-select * from {{ source('dwh_bl', 'fct_orders') }} 
