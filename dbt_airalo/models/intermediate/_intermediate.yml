@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int_gbp_to_usd_rate
+    description: |
+      Intermediate model that converts GBP exchange rates to USD.
+      This model is used to standardize all currency conversions to USD for consistent reporting.
+      
+      **Business Logic:**
+      - Takes exchange rates from staging
+      - Converts GBP rates to USD using the GBP/USD exchange rate
+      - Ensures all rates are relative to USD as the base currency
+      
+      **Usage:**
+      - Used by fct_order for currency standardization
+      - Used by fct_exchange_rate for consistent rate reporting
+    
+    columns:
+      - name: currency
+        description: "ISO 4217 currency code (e.g., GBP, EUR, USD)"
+        tests:
+          - not_null
+          - unique
+      - name: usd_rate
+        description: "Exchange rate relative to USD (1 USD = X units of currency)"
+        tests:
+          - not_null
+      - name: updated_at
+        description: "Timestamp when the exchange rate was last updated"
+        tests:
+          - not_null 
+      - name: valid_from
+        description: "Start date when this exchange rate became effective"    
+      - name: valid_to
+        description: "End date when this exchange rate was superseded (NULL if current)"

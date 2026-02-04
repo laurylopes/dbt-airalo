@@ -1,0 +1,192 @@
+version: 2
+
+models:
+  - name: dim_user
+    description: |
+      **Type:** Slowly Changing Dimension (Type 2)
+      
+      User dimension table tracking historical changes in user attributes over time.
+      Captures changes in user's IP country and platform usage.
+      
+      **Grain:** One row per user per valid time period
+      
+      **Source:** snp_raw_user (snapshot of raw.user)
+      
+      **Business Logic:**
+      - Tracks historical changes in user attributes
+      - Uses dbt snapshots for SCD Type 2 implementation
+      - Current records have dbt_valid_to = NULL
+      - Historical records have dbt_valid_to populated
+      
+      **Usage:**
+      - Join to fact tables using user_id
+      - Filter on is_current = true for latest user attributes
+      - Use valid_from/valid_to for historical analysis
+      
+      **Refresh:** Updated through orchestrated dbt snapshot command
+    
+    columns:
+      - name: id
+        description: "Surrogate key for each exchange rate record"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "Natural key - Unique identifier for each user"
+        tests:
+          - not_null   
+      - name: ip_country
+        description: "Country derived from user's IP address (ISO 3166-1 alpha-2 code)"
+      - name: platform
+        description: "Platform used by the user (ios, android, web)"
+      - name: updated_at
+        description: "Timestamp of the last update to this user record"
+        tests:
+          - not_null
+      - name: valid_from
+        description: "Timestamp when this version of the user record became effective"
+        tests:
+          - not_null 
+      - name: valid_to
+        description: "Timestamp when this version of the user record was superseded (NULL for current records)"
+      - name: is_current
+        description: "Boolean flag indicating if this is the current/active version of the user record"
+        tests:
+          - not_null
+
+  - name: fct_order
+    description: |
+      **Type:** Transaction Fact Table
+      
+      Order transactions with full denormalized context including user, payment, and location details.
+      All monetary amounts are converted to USD for consistent analysis.
+      
+      **Grain:** One row per order
+      
+      **Source:** stg_order, dim_user, int_gbp_to_usd_rate
+      
+      **Business Logic:**
+      - Joins order data with current user dimension
+      - Converts all currency amounts to USD using exchange rates
+      - Includes both card country and destination country for geo analysis
+      - Contains order status and payment method for operational reporting
+      
+      **Measures:**
+      - amount (in original currency)
+      - amount_usd (standardized to USD)
+      
+      **Dimensions:**
+      - user_id (conformed dimension)
+      - status, payment_method, card_country, destination_country
+      - created_at, updated_at (time dimensions)
+      
+      **Usage:**
+      - Revenue analysis and reporting
+      - Geographic distribution analysis
+      - Payment method performance
+      - Order status tracking
+      
+      **Refresh:** Incremental load on new/updated orders
+    
+    columns:
+      - name: order_id
+        description: "Primary key - Unique identifier for each order"
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: "Foreign key to dim_user - User who placed the order"
+        tests:
+          - not_null
+      - name: created_at
+        description: "Timestamp when the order was created"
+        tests:
+          - not_null
+      - name: updated_at
+        description: "Timestamp when the order was last updated"
+        tests:
+          - not_null
+      - name: latest_status
+        description: "Latest status of the order (completed, pending, cancelled, etc.)"
+        tests:
+          - not_null
+      - name: amount
+        description: "Order amount in original currency"
+        tests:
+          - not_null
+      - name: currency
+        description: "ISO 4217 currency code of the original order amount"
+        tests:
+          - not_null
+      - name: amount_usd
+        description: "Order amount converted to USD using exchange rates"
+        tests:
+          - not_null
+      - name: amount_gbp
+        description: "Order amount converted to GBP using exchange rates"
+        tests:
+          - not_null
+      - name: esim_package
+        description: "eSIM package purchased in this order"      
+      - name: payment_method
+        description: "Payment method used for the order (card, paypal, etc.)"
+      - name: card_country
+        description: "Country of the payment card used (ISO 3166-1 alpha-2 code)"  
+      - name: destination_country
+        description: "Destination country for the eSIM package (ISO 3166-1 alpha-2 code)"
+  
+  - name: fct_exchange_rate
+    description: |
+      **Type:** Periodic Snapshot Fact Table
+      
+      Daily exchange rates relative to USD, tracking historical currency conversions.
+      Enables consistent currency conversion across all financial analysis.
+      
+      **Grain:** One row per currency per day
+      
+      **Source:** snp_raw_exchange_rate (snapshot of raw.exchange_rate)
+      
+      **Business Logic:**
+      - Captures daily exchange rate snapshots
+      - All rates are relative to USD (1 USD = X units of currency)
+      - Tracks rate changes over time for historical accuracy
+      - Used for point-in-time currency conversions
+      
+      **Measures:**
+      - usd_rate (exchange rate to USD)
+      
+      **Dimensions:**
+      - currency (ISO 4217 code)
+      - valid_from, valid_to (time period)
+      
+      **Usage:**
+      - Currency conversion in fct_order
+      - Exchange rate trend analysis
+      - Multi-currency financial reporting
+      
+      **Refresh:** Updated through orchestrated dbt snapshot command
+    
+    columns:
+      - name: id
+        description: "Surrogate key for each exchange rate record"
+        tests:
+          - not_null
+          - unique
+      - name: currency
+        description: "ISO 4217 currency code (e.g., EUR, GBP, JPY)"
+        tests:
+          - not_null
+      - name: usd_rate
+        description: "Exchange rate relative to USD (1 USD = X units of this currency)"
+        tests:
+          - not_null
+      - name: updated_at
+        description: "Timestamp when the exchange rate was last updated in the source system"
+        tests:
+          - not_null
+      - name: valid_from
+        description: "Timestamp when this exchange rate became effective"
+        tests:
+          - not_null
+      - name: valid_to
+        description: "Timestamp when this exchange rate was superseded (NULL for current rates)"

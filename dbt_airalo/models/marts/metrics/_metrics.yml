@@ -1,0 +1,85 @@
+version: 2
+
+models:
+  - name: agg_user_on_order
+    description: |
+      **Type:** Aggregate metric model (Ephemeral)
+      
+      User-level metrics derived from order transaction history.
+      Calculates lifetime purchase behavior and user lifecycle segmentation.
+      
+      **Grain:** One row per user (who has completed at least one order)
+      
+      **Source:** fct_order
+      
+      **Business Logic:**
+      - Aggregates completed orders only (where completed_at is not null)
+      - Calculates purchase frequency and recency metrics
+      - Segments users into lifecycle stages (new/returned/churned)
+      - Uses order updated_at as purchase date (consider using completed_at or created_at)
+      
+      **User Segmentation Rules:**
+      - **New User:** Has exactly 1 completed order
+      - **Returned User:** Has more than 1 completed order
+      - **Churned User:** Last purchase was more than 90 days ago
+      
+      **Materialization:** Ephemeral (not persisted, compiled into downstream models)
+      
+      **Use Cases:**
+      - User lifecycle analysis
+      - Customer retention metrics
+      - Cohort segmentation
+      - Churn prediction
+      - LTV calculations
+      
+      **Used By:**
+      - ent_user (enriches user profiles with order metrics)
+      
+      **Refresh:** Calculated on-the-fly when downstream models run
+    columns:
+      - name: user_id
+        description: "Primary key - Unique identifier for each user"
+        tests:
+          - not_null
+          - unique
+      - name: total_orders
+        description: "Total number of completed orders placed by this user (lifetime)"
+        tests:
+          - not_null
+      - name: first_purchase_on
+        description: "Date of the user's first completed order (based on updated_at)"
+        tests:
+          - not_null
+      - name: last_purchase_on
+        description: "Date of the user's most recent completed order (based on updated_at)"
+        tests:
+          - not_null
+      - name: days_between_first_and_last
+        description: |
+          Number of days between first and last completed purchase.
+          Will be 0 if user has only 1 order.
+          Useful for understanding customer purchase velocity.
+        tests:
+          - not_null
+      - name: is_new_user
+        description: |
+          Boolean flag indicating if user is in 'new' lifecycle stage.
+          **Rule:** True if total_orders = 1, False otherwise.
+          New users have only made their first purchase.
+        tests:
+          - not_null
+      - name: is_returned_user
+        description: |
+          Boolean flag indicating if user is in 'returned' lifecycle stage.
+          **Rule:** True if total_orders > 1, False otherwise.
+          Returned users have demonstrated repeat purchase behavior.
+        tests:
+          - not_null
+      - name: is_churned_user
+        description: |
+          Boolean flag indicating if user is in 'churned' lifecycle stage.
+          **Rule:** True if last purchase was more than 90 days ago, False otherwise.
+          **Churn Definition:** No purchase activity in the last 90 days.
+          Note: A user can be both returned AND churned (repeat purchaser who stopped buying).
+        tests:
+          - not_null
