@@ -35,12 +35,12 @@ Format: ISO 4217 (e.g., USD, GBP, EUR, JPY).
 
 {% docs esim_package %}
 eSIM package or product purchased in this order.
-Contains package identifier or SKU.
+examples: (10GB - 30 Days, Unlimited, 1GB - 7 Days, or 3GB - 30 Days)
 {% enddocs %}
 
 {% docs payment_method %}
 Payment method used for the transaction.
-Examples: card, paypal, apple_pay, google_pay
+Examples: Airmoney, Apple Pay, Credit Card, Google Pay, PayPal
 {% enddocs %}
 
 {% docs card_country %}
@@ -55,13 +55,12 @@ Format: ISO 3166-1 alpha-2 (e.g., US, GB, DE).
 
 {% docs status %}
 Current status of the order in the order lifecycle.
-Examples: pending, completed, cancelled, failed, refunded
+Examples: completed, failed, refunded
 {% enddocs %}
 
 {% docs usd_rate %}
 Exchange rate relative to USD as base currency.
 Format: 1 USD = X units of the target currency.
-Example: If USD/EUR = 0.85, then 1 USD = 0.85 EUR
 {% enddocs %}
 
 {% docs created_at %}
@@ -100,12 +99,18 @@ Timestamp when dbt snapshot detected and recorded this version of the record.
 Used for auditing snapshot refresh history.
 {% enddocs %}
 
-{% docs valid_from %}
+{% docs dbt_valid_to %}
+Timestamp when this version of the record was superseded by a new version.
+NULL for current/active records.
+Used for SCD Type 2 time-based filtering.
+{% enddocs %}
+
+{% docs dbt_valid_from %}
 Timestamp when this version of the record became effective.
 Used for point-in-time queries and SCD Type 2 tracking.
 {% enddocs %}
 
-{% docs dbt_valid_from %}
+{% docs valid_from %}
 Timestamp when this version of the record became effective.
 Used for point-in-time queries and SCD Type 2 tracking.
 {% enddocs %}
@@ -116,12 +121,18 @@ NULL for current/active records.
 Used for SCD Type 2 time-based filtering.
 {% enddocs %}
 
-{% docs dbt_valid_to %}
-Timestamp when this version of the record was superseded by a new version.
-NULL for current/active records.
-Used for SCD Type 2 time-based filtering.
-{% enddocs %}
-
 {% docs is_current %}
 Boolean flag indicating whether this is the current/active version of the record.
+{% enddocs %}
+
+{% docs latest_status %}
+ 
+{% enddocs %}
+
+{% docs amount_usd %}
+ 
+{% enddocs %}
+
+{% docs amount_gbp %}
+ 
 {% enddocs %}

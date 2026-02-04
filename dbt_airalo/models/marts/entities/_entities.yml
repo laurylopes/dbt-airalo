@@ -1,141 +1,44 @@
 version: 2
 
 models:
-  - name: ent_order
-    description: |
-      **Type:** Entity-centric model (Normalized, 3NF-style)
-      
-      Current state view of all orders with enriched attributes and standardized currency conversions.
-      Provides a single source of truth for order entities in operational systems.
-      
-      **Grain:** One row per order
-      
-      **Source:** fct_order
-      
-      **Business Logic:**
-      - Denormalizes order data for easy consumption
-      - Includes USD and GBP standardized amounts
-      - Contains status timestamps (completed_at, refunded_at, failed_at)
-      - Links to user entities via user_id
-      
-      **Use Cases:**
-      - Order lookup APIs
-      - Operational dashboards
-      - Customer service tools
-      - Order status tracking
-      - Single order detail views
-      
-      **Refresh:** Full refresh on each dbt run
-    
-    columns:
-      - name: order_id
-        description: "Primary key - Unique identifier for each order"
-        tests:
-          - not_null
-          - unique      
-      - name: created_at
-        description: "Timestamp when the order was created"
-        tests:
-          - not_null      
-      - name: updated_at
-        description: "Timestamp when the order was last updated"
-        tests:
-          - not_null     
-      - name: latest_status
-        description: "Current status of the order (completed, pending, cancelled, failed, refunded)"
-        tests:
-          - not_null     
-      - name: amount
-        description: "Order amount in original currency"
-        tests:
-          - not_null      
-      - name: currency
-        description: "ISO 4217 currency code of the original order amount"
-        tests:
-          - not_null     
-      - name: usd_amount
-        description: "Order amount converted to USD using exchange rates"
-        tests:
-          - not_null     
-      - name: gbp_amount
-        description: "Order amount converted to GBP using exchange rates"
-        tests:
-          - not_null      
-      - name: esim_package
-        description: "eSIM package/product purchased in this order"     
-      - name: payment_method
-        description: "Payment method used for the order (card, paypal, etc.)"      
-      - name: card_country
-        description: "Country of the payment card used (ISO 3166-1 alpha-2 code)"      
-      - name: destination_country
-        description: "Destination country for the eSIM package (ISO 3166-1 alpha-2 code)"     
-      - name: user_id
-        description: "Foreign key to ent_user - User who placed the order"
-        tests:
-          - not_null   
-      - name: completed_at
-        description: "Timestamp when the order was completed (NULL if not completed)"      
-      - name: refunded_at
-        description: "Timestamp when the order was refunded (NULL if not refunded)"      
-      - name: failed_at
-        description: "Timestamp when the order failed (NULL if not failed)"
-
   - name: ent_user
     description: |
-      **Type:** Entity-centric model (Normalized, 3NF-style)
-      
       Current state view of all users with their profile attributes and aggregated order metrics.
       Combines user demographic data with behavioral metrics for a complete user profile.
-      
-      **Grain:** One row per user
-      
-      **Source:** dim_user, agg_user_on_order
-      
-      **Business Logic:**
-      - Shows current user attributes (no history)
-      - Enriched with lifetime order metrics
-      - Includes user segmentation flags (new/returned/churned)
-      - Links to order entities via user_id      
-      **Use Cases:**
-      - User profile lookups
-      - Customer segmentation
-      - User detail pages
-      - CRM integrations
-      - Marketing automation
-      - Customer support tools
-      
-      **Refresh:** Full refresh on each dbt run
+      - Type: Entity-centric model (Normalized, 3NF-style)
+      - Grain: One row per user
+      - Sources: dim_user, agg_user_on_order
+      - Refresh: Full refresh on each dbt run
     
     columns:
       - name: user_id
-        description: "Primary key - Unique identifier for each user"
+        description: '{{(doc("user_id"))}}'
         tests:
           - not_null
           - unique   
       - name: ip_country
-        description: "Country derived from user's IP address (ISO 3166-1 alpha-2 code)"     
+        description: '{{(doc("ip_country"))}}'
       - name: platform
-        description: "Platform used by the user (ios, android, web)"
-      
+        description: '{{(doc("platform"))}}'
       - name: created_at
-        description: "Timestamp when the user account was created"
+        description: '{{(doc("created_at"))}}'
         tests:
           - not_null      
       - name: updated_at
-        description: "Timestamp when the user record was last updated"
+        description: '{{(doc("updated_at"))}}'
         tests:
-          - not_null      
+          - not_null            
       - name: total_orders
-        description: "Total number of orders placed by this user (lifetime)"      
+        description: "Total number of orders placed by this user (lifetime)"            
       - name: first_purchase_on
-        description: "Date of the user's first order (NULL if no orders)"     
+        description: "Date of the user's first order (NULL if no orders)"           
       - name: last_purchase_on
-        description: "Date of the user's most recent order (NULL if no orders)"      
+        description: "Date of the user's most recent order (NULL if no orders)"           
       - name: days_between_first_and_last
-        description: "Number of days between first and last purchase (NULL if 0 or 1 orders)"      
+        description: "Number of days between first and last purchase (NULL if 0 or 1 orders)"            
       - name: is_new_user
-        description: "Boolean flag - True if user has made their first purchase within the last 30 days"      
+        description: "Boolean flag - True if user has made their first purchase within the last 30 days"            
       - name: is_returned_user
-        description: "Boolean flag - True if user has made more than one purchase"      
+        description: "Boolean flag - True if user has made more than one purchase"            
       - name: is_churned_user
         description: "Boolean flag - True if user hasn't made a purchase in the last 90 days (but has historical orders)"

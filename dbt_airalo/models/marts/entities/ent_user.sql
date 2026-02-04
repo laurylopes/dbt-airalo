@@ -13,5 +13,5 @@ select
     metric.is_returned_user,
     metric.is_churned_user
 from {{ ref('dim_user') }} user
-left join {{ ref('agg_user_on_order') }} metric
+left join {{ ref('ent_user_metrics_on_order') }} metric
     using (user_id)

@@ -18,8 +18,9 @@ select
     orders.currency,
 
     -- Creating USD and GBP amount fields
-    round(orders.amount / exchange_rate.usd_rate, 2) as usd_amount,
-    round(orders.amount / exchange_rate.usd_rate * gbp_rate.gbp_to_usd_rate, 2) as gbp_amount,
+    orders.amount / coalesce(exchange_rate.rate_from_usd, oldest_exchange_rate.rate_from_usd) as usd_amount,
+    orders.amount / coalesce(exchange_rate.rate_from_gbp, oldest_exchange_rate.rate_from_gbp) as gbp_amount,
+
     esim_package,
     payment_method,
 
@@ -36,8 +37,10 @@ select
 from {{ ref('stg_order') }}  orders
 left join {{ ref('fct_exchange_rate') }} exchange_rate
     on orders.currency = exchange_rate.currency
-left join {{ ref('int_gbp_to_usd_rate') }} gbp_rate
-    on true
+    and orders.created_at between exchange_rate.valid_from and exchange_rate.valid_to
+left join {{ ref('fct_exchange_rate') }} oldest_exchange_rate
+    on orders.currency = oldest_exchange_rate.currency
+    and oldest_exchange_rate.is_initial
 left join {{ ref('stg_user') }} user
     on orders.user_id = user.user_id
 
