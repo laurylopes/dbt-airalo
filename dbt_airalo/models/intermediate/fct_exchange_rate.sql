@@ -28,4 +28,5 @@ select
     min(valid_from) over (partition by currency) = valid_from as is_initial
 from {{ ref('stg_exchange_rate') }}
 left join gbp_rate 
+    -- To get the correct GBP rate for the valid_from date
     using(valid_from)

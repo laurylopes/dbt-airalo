@@ -22,6 +22,9 @@ clean-targets:
 
 models:
   dbt_airalo:
+    snapshot:
+      +materialized: view
+      +schema: snapshot
     staging:
       +materialized: view
       +schema: staging
@@ -30,4 +33,4 @@ models:
       +schema: intermediate
     marts:
       +materialized: table
-      +schema: dwh_bl
+      +schema: mart
