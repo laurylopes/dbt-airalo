@@ -1,85 +1,172 @@
-version: 2
-
-models:
-  - name: agg_user_on_order
+semantic_models:
+  - name: users
+    defaults:
+      agg_time_dimension: created_at
+    label: User order behavior
     description: |
-      **Type:** Aggregate metric model (Ephemeral)
-      
-      User-level metrics derived from order transaction history.
-      Calculates lifetime purchase behavior and user lifecycle segmentation.
-      
-      **Grain:** One row per user (who has completed at least one order)
-      
-      **Source:** fct_order
-      
-      **Business Logic:**
-      - Aggregates completed orders only (where completed_at is not null)
-      - Calculates purchase frequency and recency metrics
-      - Segments users into lifecycle stages (new/returned/churned)
-      - Uses order updated_at as purchase date (consider using completed_at or created_at)
-      
-      **User Segmentation Rules:**
-      - **New User:** Has exactly 1 completed order
-      - **Returned User:** Has more than 1 completed order
-      - **Churned User:** Last purchase was more than 90 days ago
-      
-      **Materialization:** Ephemeral (not persisted, compiled into downstream models)
-      
-      **Use Cases:**
-      - User lifecycle analysis
-      - Customer retention metrics
-      - Cohort segmentation
-      - Churn prediction
-      - LTV calculations
-      
-      **Used By:**
-      - ent_user (enriches user profiles with order metrics)
-      
-      **Refresh:** Calculated on-the-fly when downstream models run
-    columns:
+      User mart to capture key user-level metrics related to their purchasing behavior.
+    model: ref('user')
+    entities:
       - name: user_id
-        description: "Primary key - Unique identifier for each user"
-        tests:
-          - not_null
-          - unique
-      - name: total_orders
-        description: "Total number of completed orders placed by this user (lifetime)"
-        tests:
-          - not_null
+        label: User ID
+        type: primary
+        description: '{{(doc("user_id"))}}'
+    
+    dimensions:
+      - name: created_at
+        type: time
+        label: User Creation Date
+        type_params:
+          time_granularity: day
+        description: '{{(doc("created_at"))}}'
+        expr: created_at
       - name: first_purchase_on
-        description: "Date of the user's first completed order (based on updated_at)"
-        tests:
-          - not_null
+        type: time
+        label: First Purchase Date
+        type_params:
+          time_granularity: day
+        description: '{{(doc("first_purchase_on"))}}'
+        expr: first_purchase_on
       - name: last_purchase_on
-        description: "Date of the user's most recent completed order (based on updated_at)"
-        tests:
-          - not_null
-      - name: days_between_first_and_last
-        description: |
-          Number of days between first and last completed purchase.
-          Will be 0 if user has only 1 order.
-          Useful for understanding customer purchase velocity.
-        tests:
-          - not_null
-      - name: is_new_user
-        description: |
-          Boolean flag indicating if user is in 'new' lifecycle stage.
-          **Rule:** True if total_orders = 1, False otherwise.
-          New users have only made their first purchase.
-        tests:
-          - not_null
-      - name: is_returned_user
-        description: |
-          Boolean flag indicating if user is in 'returned' lifecycle stage.
-          **Rule:** True if total_orders > 1, False otherwise.
-          Returned users have demonstrated repeat purchase behavior.
-        tests:
-          - not_null
-      - name: is_churned_user
-        description: |
-          Boolean flag indicating if user is in 'churned' lifecycle stage.
-          **Rule:** True if last purchase was more than 90 days ago, False otherwise.
-          **Churn Definition:** No purchase activity in the last 90 days.
-          Note: A user can be both returned AND churned (repeat purchaser who stopped buying).
-        tests:
-          - not_null
+        type: time
+        label: Last Purchase Date
+        type_params:
+          time_granularity: day
+        description: '{{(doc("last_purchase_on"))}}'
+        expr: last_purchase_on
+      - name: country
+        type: categorical
+        label: Country
+        description: '{{(doc("ip_country"))}}'
+        expr: country
+      - name: platform
+        type: categorical
+        label: Platform
+        description: '{{(doc("platform"))}}'
+        expr: platform
+      - name: acquisition_channel
+        type: categorical
+        label: Acquisition Channel
+        description: '{{(doc("acquisition_channel"))}}'
+        expr: acquisition_channel
+
+    measures:
+      - name: total_users
+        label: Total Users
+        description: "Total number of users in the system"
+        agg: count
+        expr: user_id
+      - name: total_orders
+        label: Total Orders
+        description: "Total number of orders placed by this user (lifetime)"
+        agg: sum
+        expr: total_orders
+      - name: total_usd_amount_spent
+        label: Total USD Amount Spent
+        description: "Total amount spent by the user in USD (lifetime)"
+        agg: sum
+        expr: usd_total_amount
+      - name: total_gbp_amount_spent
+        label: Total GBP Amount Spent
+        description: "Total amount spent by the user in GBP (lifetime)"
+        agg: sum
+        expr: gbp_total_amount
+      - name: avg_days_between_first_and_last_purchase
+        label: Days Between First and Last Purchase
+        description: Average number of days between first and last purchase.
+        agg: avg
+        expr: days_between_first_and_last_purchase
+      - name: avg_days_since_last_purchase
+        label: Days Since Last Purchase
+        description: Average number of days since the user's last purchase. 
+        agg: avg
+        expr: days_since_last_purchase
+      - name: total_new
+        label: Number of New Users
+        description: Number of users '{{(doc("is_new"))}}'
+        agg: sum
+        expr: is_new
+      - name: total_frequent
+        label: Number of Frequent Users
+        description: Number of users '{{(doc("is_frequent"))}}'
+        agg: sum
+        expr: is_frequent
+      - name: total_occasional
+        label: Number of Occasional Users
+        description: Number of users '{{(doc("is_occasional"))}}'
+        agg: sum
+        expr: is_occasional
+      - name: total_rare
+        label: Number of Rare Users
+        description: Number of users '{{(doc("is_rare"))}}'
+        agg: sum
+        expr: is_rare
+    
+    metrics:
+      # Simple Metrics
+      - name: total_orders
+        description: "Total number of orders placed by this user (lifetime)"
+        type: simple
+        label: Total Orders
+        type_params:
+          measure: total_orders
+      - name: total_usd_amount_spent
+        description: "Total amount spent by the user in USD (lifetime)"
+        type: simple
+        label: Total USD Amount Spent
+        type_params:
+          measure: total_usd_amount_spent
+      - name: total_gbp_amount_spent
+        description: "Total amount spent by the user in GBP (lifetime)"
+        type: simple
+        label: Total GBP Amount Spent
+        type_params:
+          measure: total_gbp_amount_spent 
+      - name: days_between_first_and_last_purchase
+        description: Average number of days between first and last purchase.
+        type: simple
+        label: Days Between First and Last Purchase
+        type_params:
+          measure: avg_days_between_first_and_last_purchase
+      - name: avg_days_since_last_purchase
+        description: Average number of days since the user's last purchase. 
+        type: simple
+        label: Days Since Last Purchase
+        type_params:
+          measure: avg_days_since_last_purchase
+      - name: total_new
+        description: Number of users '{{(doc("is_new"))}}'
+        type: simple
+        label: Number of New Users
+        type_params:
+          measure: total_new
+      - name: total_frequent
+        description: Number of users '{{(doc("is_frequent"))}}'
+        type: simple
+        label: Number of Frequent Users
+        type_params:
+          measure: total_frequent
+      - name: total_occasional
+        description: Number of users '{{(doc("is_occasional"))}}'
+        type: simple
+        label: Number of Occasional Users
+        type_params:
+          measure: total_occasional
+      - name: total_rare
+        description: Number of users '{{(doc("is_rare"))}}'
+        type: simple
+        label: Number of Rare Users
+        type_params:
+          measure: total_rare
+      
+      # Ratio Metrics
+      - name: average_order_value_usd
+        label: Average Order Value (USD)
+        description: "Average order value in USD (lifetime)"
+        agg: avg
+        expr: usd_total_amount / nullif(total_orders, 0)
+      - name: average_order_value_gbp
+        label: Average Order Value (GBP)
+        description: "Average order value in GBP (lifetime)"
+        agg: avg
+        expr: gbp_total_amount / nullif(total_orders, 0)

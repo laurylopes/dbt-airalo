@@ -25,7 +25,7 @@ select
     esim_package,
     payment_method,
 
-    -- Assuming that the card country is same as IP country as a fallback
+    -- Assuming that the card country is same as IP country as a fallback to fill nulls
     coalesce(orders.card_country, user.ip_country) as card_country,
     destination_country,
     latest_status,
@@ -42,11 +42,10 @@ left join {{ ref('fct_exchange_rate') }} oldest_exchange_rate
     and oldest_exchange_rate.is_initial
 left join {{ ref('dim_user') }} user
     on orders.user_id = user.user_id
+    -- To ensure to get the correct ip country at the time the order was placed
+    and orders.created_at between user.valid_from and user.valid_to
 
 -- Incremental filter
 {% if is_incremental() %}
 where orders.updated_at > (select max(orders.updated_at) from {{ this }})
 {% endif %}
-
--- Keep only the latest status per order
-qualify row_number() over (partition by order_id order by orders.updated_at desc) = 1

@@ -31,10 +31,6 @@ models:
           - not_null 
       - name: valid_to
         description: '{{(doc("valid_to"))}}'
-      - name: is_current
-        description: "Boolean flag indicating if this is the current version of the user record."
-        tests:
-          - not_null
 
   - name: fct_order
     description: |
@@ -62,24 +58,12 @@ models:
         description: '{{(doc("updated_at"))}}'
         tests:
           - not_null
-      - name: latest_status
-        description: '{{(doc("latest_status"))}}'
-        tests:
-          - not_null
       - name: amount
         description: '{{(doc("amount"))}}'
         tests:
           - not_null
       - name: currency
         description: '{{(doc("currency"))}}'
-        tests:
-          - not_null
-      - name: amount_usd
-        description: '{{(doc("amount_usd"))}}'
-        tests:
-          - not_null
-      - name: amount_gbp
-        description: '{{(doc("amount_gbp"))}}'
         tests:
           - not_null
       - name: esim_package
@@ -90,6 +74,16 @@ models:
         description: '{{(doc("card_country"))}}'  
       - name: destination_country
         description: '{{(doc("destination_country"))}}'
+      - name: latest_status
+        description: '{{(doc("latest_status"))}}'
+        tests:
+          - not_null
+      - name: completed_at
+        description: '{{(doc("completed_at"))}}'
+      - name: refunded_at
+        description: '{{(doc("refunded_at"))}}'
+      - name: failed_at
+        description: '{{(doc("failed_at"))}}'
   
   - name: fct_exchange_rate
     description: |

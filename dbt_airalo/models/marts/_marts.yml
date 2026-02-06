@@ -1,15 +1,14 @@
 version: 2
 
 models:
-  - name: ent_user
+  - name: user
     description: |
       Current state view of all users with their profile attributes and aggregated order metrics.
       Combines user demographic data with behavioral metrics for a complete user profile.
       - Type: Entity-centric model (Normalized, 3NF-style)
       - Grain: One row per user
       - Sources: dim_user, agg_user_on_order
-      - Refresh: Full refresh on each dbt run
-    
+      - Refresh: Incremental refresh on new users (based on user_id)
     columns:
       - name: user_id
         description: '{{(doc("user_id"))}}'
@@ -34,11 +33,71 @@ models:
         description: "Date of the user's first order (NULL if no orders)"           
       - name: last_purchase_on
         description: "Date of the user's most recent order (NULL if no orders)"           
-      - name: days_between_first_and_last
-        description: "Number of days between first and last purchase (NULL if 0 or 1 orders)"            
-      - name: is_new_user
-        description: "Boolean flag - True if user has made their first purchase within the last 30 days"            
-      - name: is_returned_user
-        description: "Boolean flag - True if user has made more than one purchase"            
-      - name: is_churned_user
-        description: "Boolean flag - True if user hasn't made a purchase in the last 90 days (but has historical orders)"
+      - name: days_between_first_and_last_purchase
+        description: '{{doc("days_between_first_and_last_purchase")}}'
+      - name: days_since_last_purchase
+        description: '{{doc("days_since_last_purchase")}}'      
+      - name: is_new
+        description: '{{doc("is_new")}}'         
+      - name: is_frequent
+        description: '{{doc("is_frequent")}}'         
+      - name: is_occasional
+        description: '{{doc("is_occasional")}}'         
+      - name: is_rare
+        description: '{{doc("is_rare")}}'         
+       
+  - name: order
+    description: | 
+      Current state view of all orders with their transaction attributes and enriched user metrics.
+      Combines order-level data with user profile attributes for a complete order record.
+      - Type: Transaction-centric model (Normalized, 3NF-style)
+      - Grain: One row per order
+      - Sources: fct_order, user
+      - Refresh: Incremental refresh on new orders (based on order_id)
+    columns:
+      - name: order_id
+        description: '{{(doc("order_id"))}}'
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        description: '{{(doc("user_id"))}}'
+        tests:
+          - not_null
+      - name: created_at
+        description: '{{(doc("created_at"))}}'
+        tests:
+          - not_null
+      - name: updated_at
+        description: '{{(doc("updated_at"))}}'
+        tests:
+          - not_null
+      - name: amount
+        description: '{{(doc("amount"))}}'
+        tests:
+          - not_null
+      - name: currency
+        description: '{{(doc("currency"))}}'
+        tests:
+          - not_null
+      - name: usd_amount
+        description: '{{(doc("usd_amount"))}}'
+      - name: gbp_amount
+        description: '{{(doc("gbp_amount"))}}'
+      - name: esim_package
+        description: '{{(doc("esim_package"))}}'
+      - name: payment_method
+        description: '{{(doc("payment_method"))}}'
+      - name: card_country
+        description: '{{(doc("card_country"))}}'
+      - name: destination_country
+        description: '{{(doc("destination_country"))}}'
+      - name: latest_status
+        description: '{{(doc("latest_status"))}}'
+      - name: completed_at
+        description: '{{(doc("completed_at"))}}'
+      - name: refunded_at
+        description: '{{(doc("refunded_at"))}}'
+      - name: failed_at
+        description: '{{(doc("failed_at"))}}'
+      

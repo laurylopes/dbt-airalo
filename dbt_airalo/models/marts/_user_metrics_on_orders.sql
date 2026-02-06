@@ -29,15 +29,18 @@ select
     round(gbp_total_amount, 2) as total_gbp_amount_spent,
     first_purchase_on,
     last_purchase_on,
-    date_diff(last_purchase_on, first_purchase_on, DAY) as days_between_first_and_last,
+    date_diff(last_purchase_on, first_purchase_on, DAY) as days_between_first_and_last_purchase,
+    date_diff(current_date, last_purchase_on, DAY) as days_since_last_purchase,
     distinct_products_purchased,
-    distinct_products_count > 1 as has_purchased_different_products,
+    case when distinct_products_count > 1 then 1 else 0 end as has_purchased_different_products,
     -- is_new_user: true if user has only 1 completed order
-    case when total_orders = 1 then true else false end as is_new,
-    -- is_returned_user: true if user has more than 1 completed order
-    case when total_orders > 1 then true else false end as has_returned,
-    -- is_churned_user: true if user has not made a purchase in the last 90 days
-    case when date_diff(current_date, last_purchase_on, DAY) > 90 then true else false end as has_churned                    
+    case when total_orders = 1 then 1 else 0 end as is_new,
+    -- is_frequent_user: true if user has made a purchase in the last 90 days
+    case when date_diff(current_date, last_purchase_on, DAY) <= 90 then 1 else 0 end as is_frequent,                    
+    -- is_occasional_user: true if user has made a purchase between 90 and 180 days ago
+    case when date_diff(current_date, last_purchase_on, DAY) > 90 and date_diff(current_date, last_purchase_on, DAY) <= 180 then 1 else 0 end as is_occasional,                        
+    -- is_rare_user: true if user made a purchase more than 180 days ago
+    case when date_diff(current_date, last_purchase_on, DAY) > 180 then 1 else 0 end as is_rare                   
 from user_orders
 
 

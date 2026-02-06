@@ -24,20 +24,10 @@ models:
         description: '{{ doc("acquisition_channel") }}'
       - name: ip_country
         description: '{{ doc("ip_country") }} - Transformed: UPPERCASE, UNKNOWN if null'
-      - name: is_current
-        description: '{{ doc("is_current") }} - Derived: From dbt_valid_to'
 
   - name: stg_order
     description: |
       Staging model for order data with standardization and type casting.
-      
-      **Key Transformations:**
-      - user_id cast to string for joining with dim_user
-      - status converted to lowercase for consistency
-      - currency and country codes standardized to UPPERCASE
-      - Status-specific timestamps added (completed_at, refunded_at, failed_at)
-      
-      **Source:** raw.order
     columns:
       - name: order_id
         description: "{{ doc('order_id') }}"

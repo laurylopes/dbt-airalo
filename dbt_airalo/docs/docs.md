@@ -121,18 +121,50 @@ NULL for current/active records.
 Used for SCD Type 2 time-based filtering.
 {% enddocs %}
 
-{% docs is_current %}
-Boolean flag indicating whether this is the current/active version of the record.
-{% enddocs %}
-
 {% docs latest_status %}
- 
+Most recent status of the user's latest order. Possible values include: completed, failed, refunded. NULL if the user has no orders.
 {% enddocs %}
 
-{% docs amount_usd %}
- 
+{% docs usd_amount %}
+Order amount converted to USD using the exchange rate valid at the time of the order 
 {% enddocs %}
 
-{% docs amount_gbp %}
- 
+{% docs gbp_amount %}
+ Order amount converted to GBP using the exchange rate valid at the time of the order
+{% enddocs %}
+
+{% docs first_purchase_on %}
+The date when the user made their first completed order.
+{% enddocs %}
+
+{% docs last_purchase_on %}
+The date when the user made their most recent completed order.
+{% enddocs %}
+
+{% docs days_between_first_and_last_purchase %}
+Number of days between first and last purchase (NULL if no orders or only 1 order).  
+{% enddocs %}
+
+{% docs days_since_last_purchase %}
+Number of days since the user's last purchase (NULL if no orders). 
+{% enddocs %}
+
+{% docs distinct_products_purchased %}
+List of distinct products that the user has purchased.
+{% enddocs %}
+
+{% docs is_new %}
+Indicating users that are new.
+{% enddocs %}
+
+{% docs is_frequent %}
+Indicating if user has placed the latest order in the last 3 months.
+{% enddocs %}
+
+{% docs is_occasional %}
+Indicating if user has placed the latest order between the last 3 and 6 months.
+{% enddocs %}
+
+{% docs is_rare %}
+Indicating if user has placed the latest order more than 6 months ago.
 {% enddocs %}
