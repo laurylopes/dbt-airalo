@@ -1,2 +1,2 @@
 # dbt-airalo
-case study transform and give insights for Airalo with dbt 
+📚 dbt project to transform and generate semantic layer focused on customer acquisition metrics.
