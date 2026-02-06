@@ -1,8 +1,6 @@
 # dbt-airalo Case Study
 📚 dbt project to transform and generate semantic layer focused on customer acquisition metrics.
 
-⚠️ informations on assumptions and modeling choises are available in dbt_airalo/README.md
-
 ## Please write a short response covering:
 #### How you approached the data modeling problem?
 In order to solve the problem, first thing I did was create a project in BQ load and load the files to start quering the data. At first, I looked into duplicated rows, but also nulls on primary keys. I also explored the data with distinct to understand what values were being recorded for status, contry, etc. 
@@ -29,7 +27,7 @@ I build snapshots for exchante_rates and assumed that the first rate in the tabl
 #### Any data quality issues you encountered and how you handled them
 I found out that fact_order had duplicates. So I deduped the rows in the intermediate layer and created completed_at, failed_at, refunded_at so it would be easier to spot purchase processes.
 
-Also counrty ISO code were not uniform so I cast the codes, and homogeinise the primary keys so when doing joins I wouudn't have to cast them everytime. 
+Also the ISO country codes were not uniform so I cast the codes, and homogeinise the primary keys so when doing joins I wouudn't have to cast them everytime. 
 
 #### How do you decide where to perform
 To decide how to perform, I thought that an analysis based on the nber of users, amount they spend, type of user (frequent, rare, etc.) grouped by the acquisition channel would help identify who are the users, and what's their purchase behaviour. 
