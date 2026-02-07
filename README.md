@@ -3,12 +3,11 @@
 
 ## Please write a short response covering:
 #### How you approached the data modeling problem?
-In order to solve the problem, first thing I did was create a project in BQ load and load the files to start quering the data. At first, I looked into duplicated rows, but also nulls on primary keys. I also explored the data with distinct to understand what values were being recorded for status, contry, etc. 
+Once I had the data in BQ, I looked into duplicated rows, but also nulls on primary keys. I also explored the data with distinct to understand what values were being recorded for status, country, etc. 
 
-Once I got the idea of the data information and quality, I decided to model the data into a 
-dbt dimensional model with marts. 
+Once I got the idea of the data information and quality, I decided to model the data into a dbt dimensional model with marts. 
 
-The decision was made based on the exercice, here the main focus was user behaviour and I modeled the tables in order to create a semantic layer baser on a mart user.
+The decision was made based on the exercise, here the main focus was user behavior and I modeled the tables in order to create a semantic layer based on a user mart.
 
 For that I used:
 - staging to do basic cleaning
@@ -17,19 +16,45 @@ For that I used:
 
 I tried to develop the dbt project with the idea of how it's good practice to do it according to the source nature. 
 
-For example: fact_orders as an accumulative fact, dim_user as a SCD2, and fact_exchange_rate as period snpashot fact.
+For example: fct_order as an accumulating fact, dim_user as a SCD2, and fct_exchange_rate as a periodic snapshot fact.
 
 So that we would have the most information about users and also the most accurate revenue numbers. 
 
 #### Key assumptions you made about the data
-I build snapshots for exchante_rates and assumed that the first rate in the table was the current rate to calculate usd and gbp amounts. 
+For exchange_rates and assumed that the first rate in the table was the current rate to calculate usd and gbp amounts. 
+For fct_orders I assumed that if a user placed an order in the morning and another one in the afternoon, that the secound order would apear on the next day. 
 
 #### Any data quality issues you encountered and how you handled them
-I found out that fact_order had duplicates. So I deduped the rows in the intermediate layer and created completed_at, failed_at, refunded_at so it would be easier to spot purchase processes.
+I found out that fct_order had duplicates. So I deduped the rows in the intermediate layer and created completed_at, failed_at, refunded_at so it would be easier to spot purchase processes.
 
-Also the ISO country codes were not uniform so I cast the codes, and homogeinise the primary keys so when doing joins I wouudn't have to cast them everytime. 
+Also the ISO country codes were not uniform so I cast the codes, and standardized the primary keys so when doing joins I wouldn't have to cast them every time. 
 
-#### How do you decide where to perform
-To decide how to perform, I thought that an analysis based on the nber of users, amount they spend, type of user (frequent, rare, etc.) grouped by the acquisition channel would help identify who are the users, and what's their purchase behaviour. 
+#### How did you decide what to analyze
+To decide what to analyze to answer the question about marketing focus, I thought that an analysis based on user purchase behaviour would be the key. So I created a user mart with metrics like:
+    - nber of new users
+    - nber of returned users
+    - average amount spent by new users
+    - average amount spent by returned users
+    - average time in days for a user to return
+ 
+Here's a query example:
 
-Then according to the information I could see what channels are the most efficients and take decisions based on that.
+```SQL
+select 
+  
+  sum(is_new) as new_users, 
+  round(sum(gbp_amount_spent_new), 2) as total_amount_spend_new, 
+  round(sum(gbp_amount_spent_new) / sum(is_new), 2) as avg_amount_spent_new, 
+  
+  sum(has_returned) as returned_users, 
+  sum(gbp_amount_spent_returned) as total_amount_spend_returned, 
+  round(sum(gbp_amount_spent_returned) / sum(has_returned), 2) as avg_amount_spent_returned, 
+
+  avg(days_between_first_and_last_purchase) avg_days_between_first_and_last_purchase
+from `mart.user` 
+```
+The results of this query show that the amount spent by new returned users is 3.8 times higher than the amount spent by new users, and that on average a user returns after 55 days. Concluding that it might be a good option to invest on re-engagement.
+
+To have more information on where to focus, I decided to add dimensions like country. 
+
+

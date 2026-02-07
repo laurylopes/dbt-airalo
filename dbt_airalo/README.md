@@ -51,14 +51,14 @@ Views that perform basic cleaning and standardization of raw data:
 
 ### Intermediate Layer (`intermediate` schema)
 Tables with business transformations:
-- `dim_user` - User dimension - SCD2 to have hostorical data on user - Defined as incremental to minimise costs 
-- `fct_order` - Order facts - Accumulating Fact Snapshot transformation - Defined as incremental to minimise costs 
-- `fct_exchange_rate` - Exchange rate facts - Periodic snapshot fact table and rate transformation and usd_mount and gpb_amoun added - Defined as incremental to minimise costs 
+- `dim_user` - User dimension - SCD2 to have historical data on user - Defined as incremental to minimize costs 
+- `fct_order` - Order facts - Accumulating Fact Snapshot transformation - Defined as incremental to minimize costs 
+- `fct_exchange_rate` - Exchange rate facts - Periodic snapshot fact table and rate transformation and usd_amount and gbp_amount added - Defined as incremental to minimize costs 
 
 ### Marts Layer (`mart` schema)
 Business-ready analytics tables:
-- `order` - Final order entity with multi-currency amounts (USD, GBP) - Defined as incremental to minimise costs 
-- `user` - Final user entity with aggregated metrics - Defined as incremental to minimise costs - Takes the latest version of the user profile
+- `order` - Final order entity with multi-currency amounts (USD, GBP) - Defined as incremental to minimize costs 
+- `user` - Final user entity with aggregated metrics - Defined as incremental to minimize costs - Takes the latest version of the user profile
 - `_user_metrics_on_orders` - Ephemeral supporting metrics logic for user-order analysis (the idea is to use one ephemeral per entity calculations by user, another one would be eg. _user_metrics_on_events)
 
 

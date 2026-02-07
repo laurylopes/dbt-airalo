@@ -145,10 +145,6 @@ The date when the user made their most recent completed order.
 Number of days between first and last purchase (NULL if no orders or only 1 order).  
 {% enddocs %}
 
-{% docs days_since_last_purchase %}
-Number of days since the user's last purchase (NULL if no orders). 
-{% enddocs %}
-
 {% docs distinct_products_purchased %}
 List of distinct products that the user has purchased.
 {% enddocs %}
@@ -157,14 +153,6 @@ List of distinct products that the user has purchased.
 Indicating users that are new.
 {% enddocs %}
 
-{% docs is_frequent %}
+{% docs has_returned %}
 Indicating if user has placed the latest order in the last 3 months.
-{% enddocs %}
-
-{% docs is_occasional %}
-Indicating if user has placed the latest order between the last 3 and 6 months.
-{% enddocs %}
-
-{% docs is_rare %}
-Indicating if user has placed the latest order more than 6 months ago.
 {% enddocs %}

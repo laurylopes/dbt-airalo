@@ -9,7 +9,6 @@
     }
 )}}
 
--- tout est update en meme temps a chaque fois
 with gbp_rate as (
     select 
         usd_rate as rate_from_usd_to_gbp,

@@ -13,22 +13,23 @@
 select 
     user.user_id,
     user.created_at,
-    user.updated_at,
+    metric.first_purchase_on,
+    metric.last_purchase_on,
     user.platform,
     user.acquisition_channel,
     user.ip_country as country,
-    metric.total_orders,
-    metric.total_usd_amount_spent as usd_total_amount,
-    metric.total_gbp_amount_spent as gbp_total_amount,
-    metric.first_purchase_on,
-    metric.last_purchase_on,
+    coalesce(metric.total_orders, 0) as total_orders,
+    coalesce(metric.total_usd_amount_spent, 0) as total_usd_amount_spent,
+    coalesce(metric.total_gbp_amount_spent, 0) as total_gbp_amount_spent,
+    coalesce(metric.usd_amount_spent_new, 0) as usd_amount_spent_new,
+    coalesce(metric.gbp_amount_spent_new, 0) as gbp_amount_spent_new,
+    coalesce(metric.usd_amount_spent_returned, 0) as usd_amount_spent_returned,
+    coalesce(metric.gbp_amount_spent_returned, 0) as gbp_amount_spent_returned,
     metric.days_between_first_and_last_purchase,
-    metric.days_since_last_purchase,
     metric.distinct_products_purchased,
-    metric.is_new,
-    metric.is_frequent,
-    metric.is_occasional,
-    metric.is_rare
+    coalesce(metric.is_new, 0) as is_new,
+    coalesce(metric.has_returned, 0) as has_returned,
+    user.updated_at
 from {{ ref('dim_user') }} user
 left join {{ ref('_user_metrics_on_orders') }} metric
     using (user_id)

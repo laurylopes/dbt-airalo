@@ -22,30 +22,36 @@ models:
       - name: created_at
         description: '{{(doc("created_at"))}}'
         tests:
-          - not_null      
-      - name: updated_at
-        description: '{{(doc("updated_at"))}}'
-        tests:
-          - not_null            
+          - not_null 
+      - name: acquisition_channel
+        description: '{{(doc("acquisition_channel"))}}' 
+      - name: country
+        description: '{{(doc("ip_country"))}}'    
       - name: total_orders
-        description: "Total number of orders placed by this user (lifetime)"            
+        description: "Total number of orders placed by this user (zero if user has never completed a purchase)."     
+      - name: total_usd_amount_spent
+        description: "Total amount spent by this user in USD (lifetime)"     
+      - name: total_gbp_amount_spent
+        description: "Total amount spent by this user in GBP (lifetime)"     
+      - name: usd_amount_spent_new
+        description: "Total amount spent by this user in USD on orders that were their first purchase (lifetime)"     
+      - name: gbp_amount_spent_new
+        description: "Total amount spent by this user in GBP on orders that were their first purchase (lifetime)"     
+      - name: usd_amount_spent_returned
+        description: "Total amount spent by this user in USD on orders that were later returned (lifetime)"     
+      - name: gbp_amount_spent_returned
+        description: "Total amount spent by this user in GBP on orders that were later returned (lifetime)"     
       - name: first_purchase_on
-        description: "Date of the user's first order (NULL if no orders)"           
+        description: '{{doc("first_purchase_on")}}'        
       - name: last_purchase_on
-        description: "Date of the user's most recent order (NULL if no orders)"           
+        description: '{{doc("last_purchase_on")}}'         
       - name: days_between_first_and_last_purchase
-        description: '{{doc("days_between_first_and_last_purchase")}}'
-      - name: days_since_last_purchase
-        description: '{{doc("days_since_last_purchase")}}'      
+        description: '{{doc("days_between_first_and_last_purchase")}}'     
       - name: is_new
         description: '{{doc("is_new")}}'         
-      - name: is_frequent
-        description: '{{doc("is_frequent")}}'         
-      - name: is_occasional
-        description: '{{doc("is_occasional")}}'         
-      - name: is_rare
-        description: '{{doc("is_rare")}}'         
-       
+      - name: has_returned
+        description: '{{doc("has_returned")}}'         
+            
   - name: order
     description: | 
       Current state view of all orders with their transaction attributes and enriched user metrics.
