@@ -12,7 +12,7 @@ The decision was made based on the exercise, here the main focus was user behavi
 For that I used:
 - staging to do basic cleaning
 - intermediate to leverage heavy transformations and joins
-- marts to allow easy access data based on entity models with the idea of building a semantic layer that non-technical users could easily query with external tools
+- marts to allow easy access data based on entity models with the idea of building a semantic layer that non-technical users could easily query with external tools <p>
 
 I tried to develop the dbt project with the idea of how it's good practice to do it according to the source nature. 
 
@@ -21,21 +21,25 @@ For example: fct_order as an accumulating fact, dim_user as a SCD2, and fct_exch
 So that we would have the most information about users and also the most accurate revenue numbers. 
 
 #### Key assumptions you made about the data
-For exchange_rates and assumed that the first rate in the table was the current rate to calculate usd and gbp amounts. 
+For exchange_rates and assumed that the first rate in the table was the current rate to calculate usd and gbp amounts. <p>
 For fct_orders I assumed that if a user placed an order in the morning and another one in the afternoon, that the secound order would apear on the next day. 
 
 #### Any data quality issues you encountered and how you handled them
-I found out that fct_order had duplicates. So I deduped the rows in the intermediate layer and created completed_at, failed_at, refunded_at so it would be easier to spot purchase processes.
+I found out that fct_order had duplicates, and deduped the rows in the intermediate layer and created the following int order to be easier to spot purchase processes.: <p> 
+- completed_at
+- failed_at
+- refunded_at 
+<p>
 
 Also the ISO country codes were not uniform so I cast the codes, and standardized the primary keys so when doing joins I wouldn't have to cast them every time. 
 
 #### How did you decide what to analyze
-To decide what to analyze to answer the question about marketing focus, I thought that an analysis based on user purchase behaviour would be the key. So I created a user mart with metrics like:
-    - nber of new users
-    - nber of returned users
-    - average amount spent by new users
-    - average amount spent by returned users
-    - average time in days for a user to return
+To decide what to analyze to answer the question about marketing focus, I thought that an analysis based on user purchase behaviour would be the key. So I created a user mart with metrics like: <p>
+- number of new users
+- number of returned users
+- average amount spent by new users
+- average amount spent by returned users
+- average time in days for a user to return
  
 Here's a query example:
 
@@ -55,6 +59,6 @@ from `mart.user`
 ```
 The results of this query show that the amount spent by new returned users is 3.8 times higher than the amount spent by new users, and that on average a user returns after 55 days. Concluding that it might be a good option to invest on re-engagement.
 
-To have more information on where to focus, I decided to add dimensions like country. 
+To have more information on where to focus, I decided to add dimensions like base country of the user, the platform, etc.
 
 
